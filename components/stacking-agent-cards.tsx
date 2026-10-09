@@ -33,14 +33,20 @@ const AGENTS = [
   },
 ]
 
-const STICKY_TOP   = 80   // matches top: 80px on first card
-const STICKY_STEP  = 16   // each card stacks 16px lower
-const SCALE_STEP   = 0.04 // scale reduction per card stacked on top
-const OFFSET_STEP  = 8    // px pushed down per card stacked on top
+const STICKY_TOP = 88
+const STICKY_STEP = 18
+const STACK_RAMP = 420
+const PEEK_HEIGHT = 64
+const MAX_SCALE_SHRINK = 0.1
+const SCROLL_SLOT_HEIGHT = "92vh"
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value))
+}
 
 function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center px-3 py-1 rounded-full text-[11px] tracking-widest font-sans text-black/40 bg-black/[0.04]">
+    <span className="inline-flex items-center rounded-full bg-muted px-3 py-1 font-sans text-[11px] tracking-widest text-muted-foreground">
       {children}
     </span>
   )
@@ -48,111 +54,158 @@ function Tag({ children }: { children: React.ReactNode }) {
 
 export function StackingAgentCards() {
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
-  // depth[i] = 0..N how many cards are currently stacked on top of card i
-  const [depth, setDepth] = useState<number[]>(AGENTS.map(() => 0))
+  const [stickProgress, setStickProgress] = useState<number[]>(AGENTS.map(() => 0))
 
   useEffect(() => {
+    let frame = 0
+    let ticking = false
+
     function onScroll() {
-      const nextDepth = AGENTS.map((_, i) => {
-        // Count how many cards j > i are currently in sticky position (i.e. have scrolled past card i)
-        let count = 0
-        for (let j = i + 1; j < AGENTS.length; j++) {
-          const el = cardRefs.current[j]
-          if (!el) continue
+      if (ticking) return
+      ticking = true
+      frame = window.requestAnimationFrame(() => {
+        ticking = false
+
+        const nextProgress = AGENTS.map((_, i) => {
+          if (i === 0) return 0
+          const el = cardRefs.current[i]
+          if (!el) return 0
+
+          const stickyTop = STICKY_TOP + i * STICKY_STEP
           const rect = el.getBoundingClientRect()
-          const stickyTopJ = STICKY_TOP + j * STICKY_STEP
-          // Card j is "on top of" card i when it has reached its sticky position
-          if (rect.top <= stickyTopJ + 2) count++
-        }
-        return count
+          const distance = rect.top - stickyTop
+
+          if (distance >= STACK_RAMP) return 0
+          if (distance <= 0) return 1
+          return 1 - distance / STACK_RAMP
+        })
+
+        setStickProgress((prev) =>
+          prev.every((value, index) => Math.abs(value - nextProgress[index]) < 0.002)
+            ? prev
+            : nextProgress,
+        )
       })
-      setDepth(nextDepth)
     }
 
     window.addEventListener("scroll", onScroll, { passive: true })
+    window.addEventListener("resize", onScroll, { passive: true })
     onScroll()
-    return () => window.removeEventListener("scroll", onScroll)
+
+    return () => {
+      window.removeEventListener("scroll", onScroll)
+      window.removeEventListener("resize", onScroll)
+      window.cancelAnimationFrame(frame)
+    }
   }, [])
 
   return (
-    <div className="flex flex-col" style={{ perspective: "1400px", perspectiveOrigin: "50% 0%" }}>
+    <div
+      className="flex flex-col pb-8 md:pb-12"
+      style={{ perspective: "1400px", perspectiveOrigin: "50% 0%" }}
+    >
       {AGENTS.map((agent, i) => {
-        const d         = depth[i]
-        const scale     = 1 - d * SCALE_STEP
-        const translateY = d * OFFSET_STEP
+        const stackedBelow = stickProgress
+          .slice(i + 1)
+          .reduce((sum, value) => sum + value, 0)
+        const stackSlots = AGENTS.length - 1 - i
+        const stackRatio = stackSlots > 0 ? clamp(stackedBelow / stackSlots, 0, 1) : 0
+
+        const scale = 1 - stackRatio * MAX_SCALE_SHRINK
+        const translateY = stackRatio * (STICKY_STEP * 0.85)
+        const contentOpacity = 1 - clamp(stackRatio * 1.35, 0, 1)
+        const isPeeking = stackRatio > 0.08
+        const peekOpacity = clamp(stackRatio * 1.6, 0, 1)
+        const isLast = i === AGENTS.length - 1
 
         return (
           <div
             key={agent.label}
-            ref={el => { cardRefs.current[i] = el }}
-            className="sticky mb-4"
-            style={{ top: `${STICKY_TOP + i * STICKY_STEP}px`, zIndex: 10 + i }}
+            ref={(el) => {
+              cardRefs.current[i] = el
+            }}
+            className="sticky"
+            style={{
+              top: `${STICKY_TOP + i * STICKY_STEP}px`,
+              zIndex: 10 + i,
+              minHeight: isLast ? undefined : SCROLL_SLOT_HEIGHT,
+            }}
           >
             <div
               style={{
-                transform:      `scale(${scale}) translateY(${translateY}px)`,
+                transform: `scale(${scale}) translateY(${translateY}px)`,
                 transformOrigin: "top center",
-                transition:     "transform 0.3s cubic-bezier(0.16,1,0.3,1)",
-                willChange:     "transform",
+                willChange: "transform",
               }}
             >
-              <div className="group relative bg-[#faf9f7] rounded-2xl border border-black/[0.07] overflow-hidden cursor-pointer">
-
-                {/* ── MOBILE: image top, fades out at bottom ── */}
-                {agent.img && (
-                  <div className="relative w-full h-52 pointer-events-none md:hidden">
+              <div className="group relative min-h-[480px] cursor-pointer overflow-hidden rounded-2xl border border-border bg-card md:min-h-[520px]">
+                {agent.img ? (
+                  <div className="pointer-events-none relative h-52 w-full md:hidden">
                     <img
                       src={agent.img}
                       alt={agent.label}
-                      className="absolute inset-0 w-full h-full object-cover object-center"
+                      className="absolute inset-0 h-full w-full object-cover object-center"
                       style={{
                         maskImage: "linear-gradient(to bottom, black 0%, black 35%, transparent 85%)",
                         WebkitMaskImage: "linear-gradient(to bottom, black 0%, black 35%, transparent 85%)",
                       }}
                     />
                   </div>
-                )}
+                ) : null}
 
-                {/* ── DESKTOP: image right, fades out at left (absolute) ── */}
-                {agent.img && (
-                  <div className="hidden md:block absolute inset-y-0 right-0 w-1/2 pointer-events-none">
+                {agent.img ? (
+                  <div className="pointer-events-none absolute inset-y-0 right-0 hidden overflow-hidden md:block md:w-1/2">
                     <img
                       src={agent.img}
                       alt={agent.label}
-                      className="w-full h-full object-cover object-center"
+                      className="h-full w-full object-cover object-center"
                     />
                     <div
                       className="absolute inset-0"
                       style={{
-                        background: "linear-gradient(to right, #faf9f7 0%, transparent 55%)",
+                        background:
+                          "linear-gradient(to right, var(--card) 0%, transparent 55%), linear-gradient(to top, var(--card) 0%, transparent 28%)",
                       }}
                     />
                   </div>
-                )}
+                ) : null}
 
-                {/* Text content */}
                 <div
-                  className="relative z-10 p-8"
-                  style={{ maxWidth: agent.img ? undefined : "100%" }}
-                  // On desktop limit to left 60% so text doesn't overlap image
+                  className="relative z-10 overflow-hidden"
+                  style={{
+                    maxHeight: isPeeking
+                      ? `${PEEK_HEIGHT + (1 - stackRatio) * 280}px`
+                      : undefined,
+                  }}
                 >
-                  <div className="md:max-w-[60%]">
-                    <div className="flex items-start justify-between mb-6">
-                      <Tag>{agent.label}</Tag>
-                    </div>
-                    <h3 className="text-xl font-light mb-3">{agent.title}</h3>
-                    <p className="text-sm text-black/45 leading-relaxed mb-8">{agent.desc}</p>
-                  </div>
-                  <div className="flex gap-8 pt-6 border-t border-black/[0.06]">
-                    {agent.stats.map(s => (
-                      <div key={s.l}>
-                        <div className="text-2xl font-light">{s.v}</div>
-                        <div className="text-[11px] text-black/35 tracking-widest mt-0.5">{s.l}</div>
+                  <div
+                    className="relative z-10 p-8 md:min-h-[520px] md:p-12"
+                    style={{ opacity: contentOpacity }}
+                  >
+                    <div className="md:max-w-[58%]">
+                      <div className="mb-6 flex items-start justify-between">
+                        <Tag>{agent.label}</Tag>
                       </div>
-                    ))}
+                      <h3 className="mb-3 text-xl font-light">{agent.title}</h3>
+                      <p className="mb-10 text-sm leading-relaxed text-muted-foreground md:mb-14">{agent.desc}</p>
+                      <div className="flex gap-8 border-t border-border pt-8 md:pt-10">
+                        {agent.stats.map((s) => (
+                          <div key={s.l}>
+                            <div className="text-2xl font-light">{s.v}</div>
+                            <div className="mt-0.5 text-[11px] tracking-widest text-muted-foreground">{s.l}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div
+                    className="pointer-events-none absolute inset-x-0 top-0 z-20 px-8 py-5"
+                    style={{ opacity: peekOpacity }}
+                  >
+                    <Tag>{agent.label}</Tag>
                   </div>
                 </div>
-
               </div>
             </div>
           </div>

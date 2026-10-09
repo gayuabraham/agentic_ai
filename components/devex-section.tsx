@@ -88,26 +88,26 @@ function CodeLine({ line }: { line: (typeof STEPS)[0]["code"][0] }) {
   if (line.type === "command") return (
     <div>
       <span className="text-[#16a34a]">$ </span>
-      <span className="text-[#111]">{line.text}</span>
+      <span className="text-foreground">{line.text}</span>
     </div>
   )
-  if (line.type === "plain") return <div className="text-[#111]">{line.text}</div>
+  if (line.type === "plain") return <div className="text-foreground">{line.text}</div>
   if (line.type === "prop") return (
     <div>
       <span className="text-[#2563eb]">{line.key}</span>
-      <span className="text-[#111]">: </span>
+      <span className="text-foreground">: </span>
       <span className="text-[#16a34a]">{line.val}</span>
-      <span className="text-[#111]">,</span>
+      <span className="text-foreground">,</span>
     </div>
   )
   if (line.type === "keyword") return (
     <div>
       <span className="text-[#7c3aed]">{line.text}</span>
-      <span className="text-[#111]">{line.after}</span>
+      <span className="text-foreground">{line.after}</span>
       <span className="text-[#7c3aed]">{line.keyword2}</span>
       {line.keyword3 && <span className="text-[#7c3aed]">{line.keyword3}</span>}
       {line.fn && <span className="text-[#b45309]">{line.fn}</span>}
-      {line.args && <span className="text-[#111]">{line.args}</span>}
+      {line.args && <span className="text-foreground">{line.args}</span>}
       {line.string && <span className="text-[#16a34a]">{line.string}</span>}
     </div>
   )
@@ -142,10 +142,10 @@ export function DevExSection() {
   const step = STEPS[active]
 
   return (
-    <section id="devex" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+    <section id="devex" className="py-32 px-6 md:px-12 lg:px-20 border-t border-border">
       <div className="max-w-6xl mx-auto">
         <div className="mb-16">
-          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/[0.05] border border-black/[0.06] text-[10px] tracking-widest text-black/40 uppercase">
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border border-border text-[10px] tracking-widest text-muted-foreground uppercase">
             Developer Experience
           </div>
           <h2 className="mt-5 text-4xl md:text-5xl font-light tracking-tight leading-[1.05]">
@@ -195,7 +195,7 @@ export function DevExSection() {
 
           {/* Right — fixed-size code panel */}
           <div
-            className="lg:col-span-2 rounded-2xl border border-black/[0.06] p-8 flex flex-col"
+            className="lg:col-span-2 rounded-2xl border border-border p-8 flex flex-col"
             style={{
               background: "rgba(255,255,255,0.7)",
               boxShadow: "0 1px 3px rgba(0,0,0,0.04)",

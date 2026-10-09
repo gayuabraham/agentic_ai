@@ -1,9 +1,10 @@
 "use client"
 
-import { motion } from "framer-motion"
+import { motion, useReducedMotion } from "framer-motion"
 import { cn } from "@/lib/utils"
 
-type GlowVariant = "emerald" | "cyan" | "violet" | "amber" | "neutral"
+type GlowVariant = "emerald" | "cyan" | "violet" | "amber" | "neutral" | "lavender"
+type BorderIntensity = "subtle" | "normal" | "strong"
 
 interface GlassPanelProps {
   children: React.ReactNode
@@ -13,58 +14,93 @@ interface GlassPanelProps {
   delay?: number
   animateBorder?: boolean
   hoverLift?: boolean
+  intensity?: BorderIntensity
 }
 
 const glowColors: Record<GlowVariant, string> = {
-  emerald: "from-emerald-500/60 via-cyan-500/40 to-emerald-500/60",
-  cyan: "from-cyan-500/60 via-blue-500/40 to-cyan-500/60",
-  violet: "from-violet-500/60 via-fuchsia-500/40 to-violet-500/60",
-  amber: "from-amber-500/60 via-orange-500/40 to-amber-500/60",
-  neutral: "from-white/20 via-zinc-400/10 to-white/20",
+  lavender: "from-violet-300/40 via-fuchsia-200/25 to-purple-300/35",
+  violet: "from-violet-400/45 via-purple-300/28 to-violet-400/40",
+  emerald: "from-emerald-400/35 via-teal-300/20 to-emerald-400/30",
+  cyan: "from-sky-300/35 via-cyan-200/22 to-sky-300/30",
+  amber: "from-amber-300/35 via-orange-200/20 to-amber-300/30",
+  neutral: "from-white/50 via-white/20 to-white/35",
+}
+
+const intensityConfig: Record<BorderIntensity, { duration: number; opacity: string }> = {
+  subtle: { duration: 18, opacity: "opacity-25" },
+  normal: { duration: 12, opacity: "opacity-35" },
+  strong: { duration: 8, opacity: "opacity-50" },
 }
 
 export function GlassPanel({
   children,
   className,
   contentClassName,
-  glow = "neutral",
+  glow = "lavender",
   delay = 0,
-  animateBorder = true,
+  animateBorder = false,
   hoverLift = true,
+  intensity = "normal",
 }: GlassPanelProps) {
+  const reduceMotion = useReducedMotion()
+  const border = intensityConfig[intensity]
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, filter: "blur(8px)" }}
-      animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      transition={{ duration: 0.55, delay, ease: [0.16, 1, 0.3, 1] }}
-      whileHover={hoverLift ? { y: -2, transition: { duration: 0.25 } } : undefined}
-      className={cn("group relative overflow-hidden rounded-2xl p-[1px]", className)}
+      initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={
+        hoverLift && !reduceMotion
+          ? { y: -1, transition: { type: "spring", stiffness: 400, damping: 28 } }
+          : undefined
+      }
+      className={cn(
+        "group relative flex min-h-0 flex-col overflow-hidden rounded-[var(--r24-agent-radius)] p-px",
+        className,
+      )}
     >
-      {animateBorder ? (
+      <div
+        className={cn(
+          "absolute inset-0 rounded-[var(--r24-agent-radius)] bg-gradient-to-br opacity-60",
+          glowColors[glow],
+        )}
+        aria-hidden
+      />
+
+      {animateBorder && !reduceMotion ? (
         <motion.div
           className={cn(
-            "absolute inset-0 rounded-2xl bg-gradient-to-r opacity-70 blur-[0.5px]",
+            "absolute -inset-[45%] rounded-full bg-gradient-to-r blur-[2px]",
+            border.opacity,
             glowColors[glow],
           )}
           animate={{ rotate: 360 }}
-          transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-          style={{ transformOrigin: "center center" }}
+          transition={{ duration: border.duration, repeat: Infinity, ease: "linear" }}
+          aria-hidden
         />
-      ) : (
-        <div className={cn("absolute inset-0 rounded-2xl bg-gradient-to-r opacity-40", glowColors[glow])} />
-      )}
+      ) : null}
 
-      <motion.div
+      <div
         className={cn(
-          "relative overflow-hidden rounded-[15px] border border-white/[0.08]",
-          "bg-zinc-950/70 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-2xl",
+          "relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[calc(var(--r24-agent-radius)-1px)]",
+          "border border-[var(--r24-agent-glass-border)]",
+          "bg-[var(--r24-agent-glass-bg)] shadow-[var(--r24-agent-glass-shadow)]",
+          "backdrop-blur-[var(--r24-agent-blur)]",
+          "transition-shadow duration-300 group-hover:shadow-[var(--r24-agent-shadow)]",
           contentClassName,
         )}
       >
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/[0.06] via-transparent to-transparent" />
-        <div className="pointer-events-none absolute -right-20 -top-20 size-40 rounded-full bg-white/[0.03] blur-3xl" />
-        <div className="relative">{children}</div>
-      </motion.div>
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/55 via-white/10 to-transparent dark:from-white/[0.12] dark:via-transparent"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent dark:via-white/25"
+          aria-hidden
+        />
+        <div className="relative z-10 flex min-h-0 flex-1 flex-col">{children}</div>
+      </div>
     </motion.div>
   )
 }

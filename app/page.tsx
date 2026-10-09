@@ -1,14 +1,36 @@
 "use client"
 
+import dynamic from "next/dynamic"
 import React, { useRef, useEffect, useState, useCallback } from "react"
-import { IntroAnimation, INTRO_DURATION_MS, HERO_REVEAL_MS } from "@/components/intro-animation"
-import { AgentInterface } from "@/components/agent-interface"
+import { INTRO_DURATION_MS, HERO_REVEAL_MS } from "@/components/intro-animation"
 import { PixelIcon } from "@/components/pixel-icon"
-import { LiveAgentFeed, LiveAgentCounter } from "@/components/live-agent-feed"
 import { RevealText } from "@/components/reveal-text"
-import { StackingAgentCards } from "@/components/stacking-agent-cards"
 import { MobileNav } from "@/components/mobile-nav"
-import { DevExSection } from "@/components/devex-section"
+
+const IntroAnimation = dynamic(
+  () => import("@/components/intro-animation").then((mod) => mod.IntroAnimation),
+  { ssr: false },
+)
+const AgentInterface = dynamic(
+  () => import("@/components/agent-interface").then((mod) => mod.AgentInterface),
+  { ssr: false },
+)
+const LiveAgentFeed = dynamic(
+  () => import("@/components/live-agent-feed").then((mod) => mod.LiveAgentFeed),
+  { ssr: false },
+)
+const LiveAgentCounter = dynamic(
+  () => import("@/components/live-agent-feed").then((mod) => mod.LiveAgentCounter),
+  { ssr: false },
+)
+const StackingAgentCards = dynamic(
+  () => import("@/components/stacking-agent-cards").then((mod) => mod.StackingAgentCards),
+  { ssr: false },
+)
+const DevExSection = dynamic(
+  () => import("@/components/devex-section").then((mod) => mod.DevExSection),
+  { ssr: false },
+)
 
 // ─── Intersection Observer hook ──────────────────────────────────────────────
 function useInView(threshold = 0.15) {
@@ -50,7 +72,7 @@ function BentoCard({ children, className = "", delay = 0 }: { children: React.Re
   return (
     <div
       ref={ref}
-      className={`group relative rounded-2xl border border-black/[0.07] bg-white overflow-hidden transition-all duration-700 hover:border-black/[0.15] hover:bg-[#fafaf8] ${className}`}
+      className={`group relative rounded-2xl border border-border bg-card overflow-hidden transition-all duration-700 hover:border-border hover:bg-accent ${className}`}
       style={{
         opacity: inView ? 1 : 0,
         transform: inView ? "translateY(0)" : "translateY(28px)",
@@ -69,7 +91,7 @@ function BentoCard({ children, className = "", delay = 0 }: { children: React.Re
 // ─── Pill tag ─────────────────────────────────────────────────────────────────
 function Tag({ children }: { children: React.ReactNode }) {
   return (
-    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] tracking-widest font-sans text-black/40 bg-black/[0.04]">
+    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] tracking-widest font-sans text-muted-foreground bg-muted">
       {children}
     </span>
   )
@@ -99,7 +121,7 @@ export default function Rapid24Page() {
   }
 
   return (
-    <div className="bg-[#F5F4F0] text-[#111] min-h-screen font-sans antialiased">
+    <div className="bg-background text-foreground min-h-screen font-sans antialiased transition-colors duration-300">
 
       {/* ── INTRO ANIMATION ───────────────────────────────────────────────── */}
       <IntroAnimation onDone={handleIntroDone} />
@@ -127,7 +149,7 @@ export default function Rapid24Page() {
 
 
         {/* Progressive blur + light gradient rising from bottom */}
-        <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: "65%", background: "linear-gradient(to top, #F5F4F0 0%, #F5F4F0 18%, rgba(245,244,240,0.85) 35%, rgba(245,244,240,0.5) 55%, rgba(245,244,240,0.15) 75%, transparent 100%)" }} />
+        <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: "65%", background: "var(--r24-hero-fade)" }} />
         {/* Backdrop blur layers — progressively lighter toward top */}
         <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: "20%", backdropFilter: "blur(12px)", WebkitBackdropFilter: "blur(12px)", maskImage: "linear-gradient(to top, black 0%, transparent 100%)", WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 100%)" }} />
         <div className="absolute inset-x-0 bottom-0 z-10 pointer-events-none" style={{ height: "38%", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", maskImage: "linear-gradient(to top, black 0%, transparent 100%)", WebkitMaskImage: "linear-gradient(to top, black 0%, transparent 100%)" }} />
@@ -140,7 +162,7 @@ export default function Rapid24Page() {
         <div className="absolute inset-x-0 top-28 bottom-0 z-30 flex flex-col justify-end px-6 md:px-12 pb-10 max-w-3xl">
           {/* Title */}
           <h1
-            className="text-5xl sm:text-6xl md:text-7xl font-light text-[#111] leading-[1.02] tracking-tight mb-6"
+            className="text-5xl sm:text-6xl md:text-7xl font-light text-foreground leading-[1.02] tracking-tight mb-6"
             style={{
               fontFamily: '"IBM Plex Sans", sans-serif',
               opacity: heroReady ? 1 : 0,
@@ -153,7 +175,7 @@ export default function Rapid24Page() {
           </h1>
 
           <p
-            className="text-sm sm:text-base text-black/45 leading-relaxed mb-8 max-w-xl"
+            className="text-sm sm:text-base text-muted-foreground leading-relaxed mb-8 max-w-xl"
             style={{
               fontFamily: '"IBM Plex Sans", sans-serif',
               opacity: heroReady ? 1 : 0,
@@ -181,8 +203,8 @@ export default function Rapid24Page() {
                   transition: `opacity 0.8s cubic-bezier(0.16,1,0.3,1) ${120 + i * 80}ms, filter 0.8s cubic-bezier(0.16,1,0.3,1) ${120 + i * 80}ms, transform 0.8s cubic-bezier(0.16,1,0.3,1) ${120 + i * 80}ms`,
                 }}
               >
-                <div className="text-3xl sm:text-4xl text-[#111] font-light tracking-tight" style={{ fontFamily: '"IBM Plex Sans", sans-serif' }}>{stat.value}</div>
-                <div className="text-xs text-black/40 tracking-widest uppercase mt-1" style={{ fontFamily: '"IBM Plex Sans", sans-serif' }}>{stat.label}</div>
+                <div className="text-3xl sm:text-4xl text-foreground font-light tracking-tight" style={{ fontFamily: '"IBM Plex Sans", sans-serif' }}>{stat.value}</div>
+                <div className="text-xs text-muted-foreground tracking-widest uppercase mt-1" style={{ fontFamily: '"IBM Plex Sans", sans-serif' }}>{stat.label}</div>
               </div>
             ))}
           </div>
@@ -222,16 +244,16 @@ export default function Rapid24Page() {
               <div
                 className="absolute inset-0"
                 style={{
-                  background: "linear-gradient(to bottom, transparent 35%, rgba(245,244,240,0.3) 50%, rgba(245,244,240,0.75) 65%, rgba(245,244,240,0.95) 80%, rgb(245,244,240) 100%)",
+                  background: "var(--r24-bento-fade)",
                 }}
               />
               {/* Content */}
               <div className="relative z-10">
-                <div className="w-10 h-10 rounded-xl border border-black/10 bg-white/60 flex items-center justify-center mb-6" style={{ backdropFilter: "blur(8px)" }}>
+                <div className="w-10 h-10 rounded-xl border border-border bg-card/60 flex items-center justify-center mb-6" style={{ backdropFilter: "blur(8px)" }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/><path d="m4.93 4.93 2.12 2.12M16.95 16.95l2.12 2.12M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"/></svg>
                 </div>
                 <h3 className="text-xl font-light mb-3">Autonomous AI Deployment</h3>
-                <p className="text-sm text-black/45 leading-relaxed max-w-sm">
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-sm">
                   Rapid24.ai monitors pipelines end-to-end—detecting, fixing, deploying, and verifying so your team never babysits releases again.
                 </p>
               </div>
@@ -239,34 +261,34 @@ export default function Rapid24Page() {
 
             {/* Bottom row */}
             <BentoCard className="col-span-12 md:col-span-4 p-8 min-h-[200px]" delay={120}>
-              <div className="w-10 h-10 rounded-xl border border-black/10 flex items-center justify-center mb-5">
+              <div className="w-10 h-10 rounded-xl border border-border flex items-center justify-center mb-5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
               </div>
               <h3 className="text-lg font-light mb-2">Faster Release Cycles</h3>
-              <p className="text-sm text-black/45 leading-relaxed">Ship continuously without waiting on flaky builds, Docker issues, or env drift.</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Ship continuously without waiting on flaky builds, Docker issues, or env drift.</p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-4 p-8 min-h-[200px]" delay={160}>
-              <div className="w-10 h-10 rounded-xl border border-black/10 flex items-center justify-center mb-5">
+              <div className="w-10 h-10 rounded-xl border border-border flex items-center justify-center mb-5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 10h8M8 14h5"/></svg>
               </div>
               <h3 className="text-lg font-light mb-2">Automatic Error Resolution</h3>
-              <p className="text-sm text-black/45 leading-relaxed">Root-cause failed builds and infrastructure issues, then apply fixes automatically.</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Root-cause failed builds and infrastructure issues, then apply fixes automatically.</p>
             </BentoCard>
 
             <BentoCard className="col-span-12 md:col-span-4 p-8 min-h-[200px]" delay={200}>
-              <div className="w-10 h-10 rounded-xl border border-black/10 flex items-center justify-center mb-5">
+              <div className="w-10 h-10 rounded-xl border border-border flex items-center justify-center mb-5">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               </div>
               <h3 className="text-lg font-light mb-2">Reliable Production Deployments</h3>
-              <p className="text-sm text-black/45 leading-relaxed">Health checks and smoke verification after every deploy—production stays trusted.</p>
+              <p className="text-sm text-muted-foreground leading-relaxed">Health checks and smoke verification after every deploy—production stays trusted.</p>
             </BentoCard>
           </div>
         </div>
       </section>
 
       {/* ── BUILD YOUR AGENTS (4 cards) ───────────────────────────────────── */}
-      <section id="agents" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+      <section id="agents" className="border-t border-border px-6 py-32 pb-20 md:px-12 md:pb-24 lg:px-20">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-16">
             <div>
@@ -276,7 +298,7 @@ export default function Rapid24Page() {
                 {"Four pillars of\nautonomous DevOps."}
               </RevealText>
             </div>
-            <p className="text-sm text-black/45 leading-relaxed max-w-xs">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               Built for full-stack developers, DevOps engineers, startup teams, CTOs, and engineering organizations shipping at scale.
             </p>
           </div>
@@ -286,7 +308,7 @@ export default function Rapid24Page() {
       </section>
 
       {/* ── HOW IT WORKS ──────────────────────────────────────────────────── */}
-      <section id="workflow" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06] overflow-hidden">
+      <section id="workflow" className="py-32 px-6 md:px-12 lg:px-20 border-t border-border overflow-hidden">
         <div className="max-w-6xl mx-auto">
           <div className="mb-16">
             <PixelIcon type="workflow" size={40} />
@@ -320,12 +342,12 @@ export default function Rapid24Page() {
                 </div>
                 {/* Number top-left */}
                 <div className="relative z-10 p-7">
-                  <span className="font-pixel text-[11px] text-black/20 tracking-widest block">{step.n}</span>
+                  <span className="font-pixel text-[11px] text-foreground/20 tracking-widest block">{step.n}</span>
                 </div>
                 {/* Text pushed further down */}
                 <div className="relative z-10 px-7 pb-7 mt-auto pt-16">
                   <h3 className="text-2xl font-light mb-3">{step.title}</h3>
-                  <p className="text-sm text-black/45 leading-relaxed">{step.desc}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{step.desc}</p>
                 </div>
               </BentoCard>
             ))}
@@ -334,7 +356,7 @@ export default function Rapid24Page() {
       </section>
 
       {/* ── INTEGRATIONS ──────────────────────────────────────────────────── */}
-      <section id="integrations" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+      <section id="integrations" className="py-32 px-6 md:px-12 lg:px-20 border-t border-border">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-8 mb-16">
             <div>
@@ -344,14 +366,14 @@ export default function Rapid24Page() {
                 {"Connect your stack.\nAutomate every deploy."}
               </RevealText>
             </div>
-            <p className="text-sm text-black/45 leading-relaxed max-w-xs">
+            <p className="text-sm text-muted-foreground leading-relaxed max-w-xs">
               Native connectors for GitHub, CI/CD, containers, clouds, and observability. Extend with the Rapid24 SDK in minutes.
             </p>
           </div>
 
           {/* Full-width image block with glass cards */}
           {/* Mobile: flex-col, image + cards stacked. Desktop: image fills block, cards absolute */}
-          <div className="rounded-2xl overflow-hidden border border-black/[0.07] flex flex-col md:block md:relative" onMouseMove={handleMouse}>
+          <div className="rounded-2xl overflow-hidden border border-border flex flex-col md:block md:relative" onMouseMove={handleMouse}>
             {/* Image */}
             <div className="relative w-full h-[280px] md:h-[480px] shrink-0">
               <img
@@ -373,12 +395,12 @@ export default function Rapid24Page() {
               >
                 <Tag>SDK</Tag>
                 <h3 className="mt-3 text-lg font-light mb-2">Extend your pipeline</h3>
-                <p className="text-xs text-black/45 leading-relaxed mb-4">Hook custom validators and deploy hooks. TypeScript and Python.</p>
-                <div className="bg-black/[0.05] rounded-lg border border-black/[0.07] p-3 font-mono text-[11px] text-black/50 leading-relaxed">
-                  <span className="text-black/25">// deploy hook</span><br />
+                <p className="text-xs text-muted-foreground leading-relaxed mb-4">Hook custom validators and deploy hooks. TypeScript and Python.</p>
+                <div className="bg-muted rounded-lg border border-border p-3 font-mono text-[11px] text-foreground/50 leading-relaxed">
+                  <span className="text-foreground/25">// deploy hook</span><br />
                   <span className="text-blue-600/70">defineHook</span>{"({"}<br />
                   {"  "}<span className="text-amber-700/70">name</span>: <span className="text-green-700/70">&apos;preDeploy&apos;</span>,<br />
-                  {"  "}<span className="text-amber-700/70">run</span>: <span className="text-black/35">async (ctx) </span>={">"}<br />
+                  {"  "}<span className="text-amber-700/70">run</span>: <span className="text-foreground/35">async (ctx) </span>={">"}<br />
                   {"    "}<span className="text-blue-600/70">validateEnv</span>(ctx)<br />
                   {"})"}
                 </div>
@@ -394,9 +416,9 @@ export default function Rapid24Page() {
               >
                 <div className="flex items-center gap-2 mb-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-500/80 animate-pulse" />
-                  <span className="text-xs text-black/40 tracking-widest">LIVE STATUS</span>
+                  <span className="text-xs text-muted-foreground tracking-widest">LIVE STATUS</span>
                 </div>
-                <p className="text-sm text-black/45">Full REST + WebSocket API. Stream build status and deploy progress into your tools.</p>
+                <p className="text-sm text-muted-foreground">Full REST + WebSocket API. Stream build status and deploy progress into your tools.</p>
               </div>
             </div>
           </div>
@@ -404,7 +426,7 @@ export default function Rapid24Page() {
       </section>
 
       {/* ── SECURITY & OBSERVABILITY ──────────────────────────────────��──── */}
-      <section id="security" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+      <section id="security" className="py-32 px-6 md:px-12 lg:px-20 border-t border-border">
         <div className="max-w-6xl mx-auto">
           <div className="mb-16">
             <PixelIcon type="platform" size={40} />
@@ -418,7 +440,7 @@ export default function Rapid24Page() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Left side — descriptions */}
             <div className="space-y-6">
-              <p className="text-sm text-black/45 leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 Every deploy is logged, every fix is traceable. Built for engineering orgs that need compliance without slowing release velocity.
               </p>
 
@@ -429,10 +451,10 @@ export default function Rapid24Page() {
                   { label: "Production Observability", desc: "Monitor builds, health checks, and AI activity in real time" },
                 ].map((item) => (
                   <div key={item.label} className="flex gap-4">
-                    <div className="w-1 bg-black/10 rounded-full shrink-0" />
+                    <div className="w-1 bg-foreground/10 rounded-full shrink-0" />
                     <div>
                       <h3 className="text-sm font-light mb-1">{item.label}</h3>
-                      <p className="text-xs text-black/35">{item.desc}</p>
+                      <p className="text-xs text-foreground/35">{item.desc}</p>
                     </div>
                   </div>
                 ))}
@@ -441,8 +463,8 @@ export default function Rapid24Page() {
               {/* Compliance badges — vertical stack */}
               <div className="pt-4 flex flex-col gap-2">
                 {["SOC 2", "GDPR", "HIPAA Ready", "ISO 27001"].map((badge) => (
-                  <div key={badge} className="flex items-center gap-2 text-xs text-black/25">
-                    <span className="w-1 h-1 rounded-full bg-black/25" />
+                  <div key={badge} className="flex items-center gap-2 text-xs text-foreground/25">
+                    <span className="w-1 h-1 rounded-full bg-foreground/25" />
                     {badge}
                   </div>
                 ))}
@@ -451,7 +473,7 @@ export default function Rapid24Page() {
 
             {/* Right side — live audit log visualization */}
             <BentoCard className="p-6 lg:row-span-1" delay={0}>
-              <div className="text-xs text-black/30 tracking-widest uppercase mb-4">AI Activity Log</div>
+              <div className="text-xs text-foreground/30 tracking-widest uppercase mb-4">AI Activity Log</div>
               <div className="space-y-2">
                 {[
                   { time: "12:34:21", action: "deploy_verified", status: "success" },
@@ -462,13 +484,13 @@ export default function Rapid24Page() {
                 ].map((log, i) => (
                   <div
                     key={i}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-black/[0.02] hover:bg-black/[0.04] transition-colors border border-black/[0.04] group cursor-pointer"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-muted/50 hover:bg-muted transition-colors border border-border group cursor-pointer"
                     style={{
                       animation: `fadeInUp 0.5s cubic-bezier(0.16,1,0.3,1) ${i * 80}ms both`,
                     }}
                   >
-                    <span className="text-[10px] text-black/25 font-mono min-w-[60px]">{log.time}</span>
-                    <span className="text-[11px] text-black/50 font-light flex-1">{log.action}</span>
+                    <span className="text-[10px] text-foreground/25 font-mono min-w-[60px]">{log.time}</span>
+                    <span className="text-[11px] text-foreground/50 font-light flex-1">{log.action}</span>
                     <span className="w-1.5 h-1.5 rounded-full bg-green-500/60 group-hover:bg-green-500 transition-colors" />
                   </div>
                 ))}
@@ -488,14 +510,14 @@ export default function Rapid24Page() {
       <DevExSection />
 
       {/* ── MARQUEE CAPABILITIES ──────────────────────────────────────────── */}
-      <section className="py-0 border-t border-black/[0.06] overflow-hidden select-none">
-        <div className="flex border-b border-black/[0.06]" style={{ animation: "marqueeLeft 28s linear infinite" }}>
+      <section className="py-0 border-t border-border overflow-hidden select-none">
+        <div className="flex border-b border-border" style={{ animation: "marqueeLeft 28s linear infinite" }}>
           {[...Array(3)].map((_, rep) => (
             <div key={rep} className="flex shrink-0">
               {["Build Analysis", "Error Resolution", "Env Validation", "Docker Fixes", "CI/CD Repair", "Auto Deploy", "Health Checks", "Smoke Tests", "Rollback Guard", "Prod Verify"].map((cap) => (
-                <div key={cap} className="flex items-center gap-6 px-10 py-5 border-r border-black/[0.06] shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-black/20 shrink-0" />
-                  <span className="text-sm text-black/45 whitespace-nowrap tracking-wide">{cap}</span>
+                <div key={cap} className="flex items-center gap-6 px-10 py-5 border-r border-border shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/20 shrink-0" />
+                  <span className="text-sm text-muted-foreground whitespace-nowrap tracking-wide">{cap}</span>
                 </div>
               ))}
             </div>
@@ -505,9 +527,9 @@ export default function Rapid24Page() {
           {[...Array(3)].map((_, rep) => (
             <div key={rep} className="flex shrink-0">
               {["Pipeline Monitoring", "Log Parsing", "Secret Drift", "Canary Rollout", "Blue-Green", "Infrastructure Fix", "Release Notes", "Status Pages", "SLA Guardrails", "Zero Touch Ship"].map((cap) => (
-                <div key={cap} className="flex items-center gap-6 px-10 py-5 border-r border-black/[0.06] shrink-0">
-                  <span className="w-1.5 h-1.5 rounded-full bg-black/12 shrink-0" />
-                  <span className="text-sm text-black/30 whitespace-nowrap tracking-wide">{cap}</span>
+                <div key={cap} className="flex items-center gap-6 px-10 py-5 border-r border-border shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-foreground/12 shrink-0" />
+                  <span className="text-sm text-foreground/30 whitespace-nowrap tracking-wide">{cap}</span>
                 </div>
               ))}
             </div>
@@ -516,7 +538,7 @@ export default function Rapid24Page() {
       </section>
 
       {/* ── LIVE AGENTS ��──────────────────────────────────────────────────── */}
-      <section id="live" className="py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+      <section id="live" className="py-32 px-6 md:px-12 lg:px-20 border-t border-border">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
             <div>
@@ -525,12 +547,12 @@ export default function Rapid24Page() {
               <RevealText className="mt-5 text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.05]">
                 {"Deployments running\n24 / 7, autonomously."}
               </RevealText>
-              <p className="mt-6 text-base text-black/40 leading-relaxed max-w-sm">
+              <p className="mt-6 text-base text-muted-foreground leading-relaxed max-w-sm">
                 At any moment, Rapid24.ai is analyzing builds, fixing failures, and verifying production—so engineering teams ship without deployment friction.
               </p>
               <div className="mt-10 flex items-end gap-2">
                 <LiveAgentCounter />
-                <span className="text-black/30 text-sm mb-1 tracking-wide">deploys monitored globally</span>
+                <span className="text-foreground/30 text-sm mb-1 tracking-wide">deploys monitored globally</span>
               </div>
             </div>
             <div className="relative">
@@ -541,7 +563,7 @@ export default function Rapid24Page() {
       </section>
 
       {/* ── CTA ───────────────────────────────────────────────────────────── */}
-      <section className="relative py-32 px-6 md:px-12 lg:px-20 border-t border-black/[0.06] overflow-hidden">
+      <section className="relative py-32 px-6 md:px-12 lg:px-20 border-t border-border overflow-hidden">
         {/* Glass panels image — anchored to bottom center */}
         <img
           src="/images/footer.png"
@@ -564,14 +586,14 @@ export default function Rapid24Page() {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: "linear-gradient(to top, rgb(245,244,240) 0%, rgba(245,244,240,0.92) 18%, rgba(245,244,240,0.55) 35%, transparent 55%)",
+            background: "var(--r24-cta-fade)",
           }}
         />
         <div className="relative z-10 max-w-2xl mx-auto text-center">
           <h2 className="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight leading-[1.05] mb-6">
             From commit to<br />production—automatically.
           </h2>
-          <p className="text-sm text-black/45 leading-relaxed mb-10">
+          <p className="text-sm text-muted-foreground leading-relaxed mb-10">
             Join engineering teams using Rapid24.ai to eliminate deployment friction and ship reliable releases faster.
           </p>
           {!submitted ? (
@@ -585,11 +607,11 @@ export default function Rapid24Page() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 required
-                className="flex-1 bg-white border border-black/10 rounded-xl px-4 py-3 text-sm text-[#111] placeholder:text-black/25 focus:outline-none focus:border-black/25 transition-colors"
+                className="flex-1 bg-card border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-ring transition-colors"
               />
               <button
                 type="submit"
-                className="px-8 py-3 bg-[#111] text-white text-sm rounded-xl hover:bg-[#333] transition-colors tracking-widest font-medium"
+                className="px-8 py-3 bg-primary text-primary-foreground text-sm rounded-xl hover:bg-primary/90 transition-colors tracking-widest font-medium"
               >
                 JOIN
               </button>
@@ -605,9 +627,9 @@ export default function Rapid24Page() {
 
 
       {/* ── FOOTER ────────────────────────────────────────────────────────── */}
-      <footer className="py-10 px-6 md:px-12 lg:px-20 border-t border-black/[0.06]">
+      <footer className="py-10 px-6 md:px-12 lg:px-20 border-t border-border">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-          <span className="text-xs tracking-wide text-black/50 font-medium">Rapid24.ai</span>
+          <span className="text-xs tracking-wide text-foreground/50 font-medium">Rapid24.ai</span>
 
           {/* Nav sections */}
           <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
@@ -618,7 +640,7 @@ export default function Rapid24Page() {
               { label: "Integrations", href: "#integrations" },
               { label: "Live",         href: "#live" },
             ].map(l => (
-              <a key={l.label} href={l.href} className="text-xs text-black/35 hover:text-black/70 transition-colors tracking-widest">{l.label}</a>
+              <a key={l.label} href={l.href} className="text-xs text-foreground/35 hover:text-foreground/70 transition-colors tracking-widest">{l.label}</a>
             ))}
           </div>
 
@@ -630,12 +652,12 @@ export default function Rapid24Page() {
               { label: "Docs",    href: "#" },
               { label: "GitHub",  href: "#" },
             ].map(l => (
-              <a key={l.label} href={l.href} className="text-xs text-black/25 hover:text-black/55 transition-colors tracking-widest">{l.label}</a>
+              <a key={l.label} href={l.href} className="text-xs text-foreground/25 hover:text-foreground/55 transition-colors tracking-widest">{l.label}</a>
             ))}
           </div>
         </div>
-        <div className="max-w-6xl mx-auto mt-8 pt-6 border-t border-black/[0.04]">
-          <span className="text-xs text-black/20">© 2026 Rapid24.ai. All rights reserved.</span>
+        <div className="max-w-6xl mx-auto mt-8 pt-6 border-t border-border">
+          <span className="text-xs text-foreground/20">© 2026 Rapid24.ai. All rights reserved.</span>
         </div>
       </footer>
     </div>

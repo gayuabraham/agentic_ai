@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "simulation": {
+    "autoStart": false,
+    "loop": false,
+    "loopDelayMs": 3200,
+    "metricTickMs": 900
+  },
+  "repository": {
+    "name": "rapid24-platform",
+    "owner": "rapid24-ai",
+    "branch": "main",
+    "commit": "a3f8c21",
+    "commitMessage": "feat: add autonomous deploy pipeline",
+    "updatedAt": "2m ago"
+  },
+  "environment": {
+    "name": "production",
+    "provider": "AWS ECS",
+    "region": "us-east-1",
+    "cluster": "rapid24-prod-cluster"
+  },
+  "deployment": {
+    "id": "dep_8x2k9m",
+    "environment": "production",
+    "url": "https://app.rapid24.ai",
+    "startedAt": "14:32:10"
+  },
+  "aiThoughts": [
+    "Analyzing dependency graph...",
+    "Checking Docker layers...",
+    "Evaluating infrastructure...",
+    "Scanning deployment history...",
+    "Predicting rollout risk...",
+    "Preparing production rollout..."
+  ],
+  "metricsBaseline": [
+    { "id": "1", "type": "cpu", "label": "CPU Usage", "value": 34 },
+    { "id": "2", "type": "memory", "label": "Memory", "value": 58 },
+    { "id": "3", "type": "disk", "label": "Disk I/O", "value": 22 },
+    { "id": "4", "type": "instances", "label": "Instances", "value": 72 }
+  ],
+  "healthChecks": [
+    {
+      "id": "http",
+      "label": "HTTP Health",
+      "endpoint": "/api/health",
+      "unlockAfterStepId": "health",
+      "healthyLatency": "42ms"
+    },
+    {
+      "id": "db",
+      "label": "Database",
+      "endpoint": "postgres://prod-primary",
+      "unlockAfterStepId": "env",
+      "healthyLatency": "18ms"
+    },
+    {
+      "id": "ssl",
+      "label": "SSL Certificate",
+      "unlockAfterStepId": "docker",
+      "healthyMessage": "Valid until 2027-03-15"
+    },
+    {
+      "id": "smoke",
+      "label": "Smoke Tests",
+      "endpoint": "/api/status",
+      "unlockAfterStepId": "live",
+      "healthyLatency": "31ms"
+    }
+  ],
+  "steps": [
+    {
+      "id": "connected",
+      "label": "Repository Connected",
+      "description": "Linked rapid24-ai/rapid24-platform",
+      "durationMs": 2200,
+      "agentStatus": "analyzing",
+      "phase": "queued",
+      "terminal": [
+        { "type": "command", "text": "git clone git@github.com:rapid24-ai/rapid24-platform.git" },
+        { "type": "success", "text": "Repository cloned" }
+      ]
+    },
+    {
+      "id": "reading",
+      "label": "Reading Repository",
+      "description": "Cloning source · branch main",
+      "durationMs": 2000,
+      "agentStatus": "analyzing",
+      "phase": "queued",
+      "terminal": [
+        { "type": "command", "text": "cat package.json" },
+        { "type": "info", "text": "Reading package.json" }
+      ]
+    },
+    {
+      "id": "analyzing",
+      "label": "Analyzing Project",
+      "description": "Detecting framework & structure",
+      "durationMs": 2200,
+      "agentStatus": "analyzing",
+      "phase": "queued",
+      "terminal": [
+        { "type": "command", "text": "rapid24 detect --framework" },
+        { "type": "success", "text": "Next.js detected" }
+      ]
+    },
+    {
+      "id": "dependencies",
+      "label": "Checking Dependencies",
+      "description": "Resolving package graph",
+      "durationMs": 2800,
+      "agentStatus": "analyzing",
+      "phase": "building",
+      "terminal": [
+        { "type": "command", "text": "npm ci --omit=dev" },
+        { "type": "info", "text": "Installing dependencies" },
+        { "type": "success", "text": "node_modules ready · 428 packages" }
+      ]
+    },
+    {
+      "id": "docker",
+      "label": "Scanning Docker Configuration",
+      "description": "Validating Dockerfile & layers",
+      "durationMs": 2000,
+      "agentStatus": "analyzing",
+      "phase": "building",
+      "terminal": [
+        { "type": "command", "text": "docker build --dry-run -f Dockerfile ." },
+        { "type": "success", "text": "Dockerfile validated · multi-stage build" }
+      ]
+    },
+    {
+      "id": "env",
+      "label": "Checking Environment Variables",
+      "description": "Verifying required secrets",
+      "durationMs": 2200,
+      "agentStatus": "fixing",
+      "phase": "building",
+      "terminal": [
+        { "type": "command", "text": "rapid24 env check --env production" },
+        { "type": "warning", "text": "DATABASE_URL missing in runtime env" },
+        { "type": "success", "text": "Secret injected from vault" }
+      ]
+    },
+    {
+      "id": "build",
+      "label": "Running Build",
+      "description": "Compiling production bundle",
+      "durationMs": 3000,
+      "agentStatus": "fixing",
+      "phase": "building",
+      "terminal": [
+        { "type": "command", "text": "npx tsc --noEmit" },
+        { "type": "info", "text": "Running TypeScript" },
+        { "type": "success", "text": "Typecheck passed" }
+      ]
+    },
+    {
+      "id": "detect",
+      "label": "Detecting Build Errors",
+      "description": "Parsing build output",
+      "durationMs": 2400,
+      "agentStatus": "fixing",
+      "phase": "building",
+      "terminal": [
+        { "type": "command", "text": "npx eslint . --max-warnings=0" },
+        { "type": "info", "text": "Running ESLint" },
+        { "type": "warning", "text": "2 warnings in legacy routes" },
+        { "type": "success", "text": "Lint gate cleared" }
+      ]
+    },
+    {
+      "id": "fixes",
+      "label": "Applying AI Fixes",
+      "description": "Autonomously patching failures",
+      "durationMs": 2200,
+      "agentStatus": "fixing",
+      "phase": "building",
+      "terminal": [
+        { "type": "command", "text": "rapid24 fix --apply" },
+        { "type": "success", "text": "AI patches applied · 2 files" }
+      ]
+    },
+    {
+      "id": "tests",
+      "label": "Running Tests",
+      "description": "Executing integration suite",
+      "durationMs": 2800,
+      "agentStatus": "deploying",
+      "phase": "building",
+      "terminal": [
+        { "type": "command", "text": "npm run build" },
+        { "type": "info", "text": "Building application" },
+        { "type": "success", "text": "Next.js production build complete" }
+      ]
+    },
+    {
+      "id": "image",
+      "label": "Building Docker Image",
+      "description": "Packaging container image",
+      "durationMs": 2800,
+      "agentStatus": "deploying",
+      "phase": "deploying",
+      "terminal": [
+        { "type": "command", "text": "docker build -t rapid24-platform:a3f8c21 ." },
+        { "type": "success", "text": "Docker image created" }
+      ]
+    },
+    {
+      "id": "deploying",
+      "label": "Deploying",
+      "description": "Rolling out to us-east-1",
+      "durationMs": 3000,
+      "agentStatus": "deploying",
+      "phase": "deploying",
+      "terminal": [
+        { "type": "command", "text": "docker push 123456789.dkr.ecr.us-east-1.amazonaws.com/rapid24-platform:a3f8c21" },
+        { "type": "info", "text": "Pushing image" },
+        { "type": "command", "text": "aws ecs update-service --force-new-deployment" },
+        { "type": "info", "text": "Deploying" },
+        { "type": "success", "text": "Service rolling out · us-east-1" }
+      ]
+    },
+    {
+      "id": "health",
+      "label": "Health Checks",
+      "description": "Verifying endpoints & uptime",
+      "durationMs": 2400,
+      "agentStatus": "verifying",
+      "phase": "verifying",
+      "terminal": [
+        { "type": "command", "text": "rapid24 health --env production" },
+        { "type": "info", "text": "Health checks" },
+        { "type": "success", "text": "HTTP · DB · SSL · smoke — all green" }
+      ]
+    },
+    {
+      "id": "live",
+      "label": "Production Live",
+      "description": "Deployment verified & serving",
+      "durationMs": 2600,
+      "agentStatus": "success",
+      "phase": "live",
+      "terminal": [
+        { "type": "success", "text": "Production Live" },
+        { "type": "info", "text": "https://app.rapid24.ai" }
+      ]
+    }
+  ]
+}

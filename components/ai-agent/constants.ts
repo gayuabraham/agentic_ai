@@ -5,6 +5,7 @@ import type {
   PipelineStepData,
   RepositoryInfo,
   TerminalLine,
+  TerminalScriptEntry,
 } from "./types"
 
 export const DEMO_REPOSITORY: RepositoryInfo = {
@@ -23,6 +24,50 @@ export const DEMO_PIPELINE_STEPS: PipelineStepData[] = [
   { id: "4", label: "Deployment", description: "Rolling out to production", status: "pending" },
   { id: "5", label: "Production Live", description: "Health verification", status: "pending" },
 ]
+
+export interface PipelineStageDefinition {
+  id: string
+  label: string
+  description: string
+  /** approximate ms the stage stays "running" before completing */
+  duration: number
+}
+
+export const DEPLOYMENT_PIPELINE_STAGES: PipelineStageDefinition[] = [
+  { id: "connected", label: "Repository Connected", description: "Linked rapid24-ai/rapid24-platform", duration: 1600 },
+  { id: "reading", label: "Reading Repository", description: "Cloning source · branch main", duration: 2000 },
+  { id: "analyzing", label: "Analyzing Project", description: "Detecting framework & structure", duration: 2400 },
+  { id: "dependencies", label: "Checking Dependencies", description: "Resolving package graph", duration: 2200 },
+  { id: "docker", label: "Scanning Docker Configuration", description: "Validating Dockerfile & layers", duration: 2400 },
+  { id: "env", label: "Checking Environment Variables", description: "Verifying required secrets", duration: 2000 },
+  { id: "build", label: "Running Build", description: "Compiling production bundle", duration: 3000 },
+  { id: "detect", label: "Detecting Build Errors", description: "Parsing build output", duration: 2200 },
+  { id: "fixes", label: "Applying AI Fixes", description: "Autonomously patching failures", duration: 3000 },
+  { id: "tests", label: "Running Tests", description: "Executing integration suite", duration: 2800 },
+  { id: "image", label: "Building Docker Image", description: "Packaging container image", duration: 3000 },
+  { id: "deploying", label: "Deploying", description: "Rolling out to us-east-1", duration: 2800 },
+  { id: "health", label: "Health Checks", description: "Verifying endpoints & uptime", duration: 2400 },
+  { id: "live", label: "Production Live", description: "Deployment verified & serving", duration: 3200 },
+]
+
+export const TERMINAL_DEPLOYMENT_SCRIPT: TerminalScriptEntry[] = [
+  { id: "t1", type: "command", text: "git clone git@github.com:rapid24-ai/rapid24-platform.git" },
+  { id: "t2", type: "success", text: "Repository cloned" },
+  { id: "t3", type: "info", text: "Reading package.json" },
+  { id: "t4", type: "success", text: "Next.js detected" },
+  { id: "t5", type: "command", text: "npm ci --omit=dev" },
+  { id: "t6", type: "info", text: "Installing dependencies" },
+  { id: "t7", type: "info", text: "Running TypeScript" },
+  { id: "t8", type: "info", text: "Running ESLint" },
+  { id: "t9", type: "warning", text: "2 warnings in legacy routes" },
+  { id: "t10", type: "info", text: "Building application" },
+  { id: "t11", type: "success", text: "Docker image created" },
+  { id: "t12", type: "info", text: "Pushing image" },
+  { id: "t13", type: "info", text: "Deploying" },
+  { id: "t14", type: "info", text: "Health checks" },
+  { id: "t15", type: "success", text: "Production Live" },
+]
+
 
 export const DEMO_TERMINAL_LINES: TerminalLine[] = [
   { id: "1", timestamp: "14:32:01", level: "command", content: "rapid24 analyze --repo rapid24-ai/rapid24-platform" },
@@ -72,11 +117,11 @@ export const DEMO_SERVER_METRICS = [
 ]
 
 export const AGENT_PANEL_CLASS =
-  "relative overflow-hidden rounded-3xl border border-white/[0.08] bg-[#060608]/90 text-zinc-100 shadow-[0_24px_80px_rgba(0,0,0,0.65)] backdrop-blur-3xl"
+  "relative overflow-hidden rounded-[var(--r24-agent-radius-lg)] border border-[var(--r24-agent-panel-border)] bg-[var(--r24-agent-panel)] text-[var(--r24-agent-fg)] shadow-[var(--r24-agent-shadow)] backdrop-blur-[var(--r24-agent-blur)]"
 
 export const AGENT_SURFACE_CLASS =
-  "bg-white/[0.03] border border-white/[0.06] backdrop-blur-xl"
+  "rounded-[var(--r24-agent-radius)] bg-[var(--r24-agent-surface)] border border-[var(--r24-agent-surface-border)] backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]"
 
-export const AGENT_MUTED_TEXT = "text-zinc-500"
+export const AGENT_MUTED_TEXT = "text-[var(--r24-agent-muted)]"
 
-export const AGENT_ACCENT = "text-emerald-400"
+export const AGENT_ACCENT = "text-[var(--r24-agent-accent)]"

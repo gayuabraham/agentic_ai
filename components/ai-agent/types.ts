@@ -33,6 +33,18 @@ export interface TerminalLine {
   content: string
 }
 
+export type TerminalScriptEntry = {
+  id: string
+  type: "command" | "success" | "info" | "warning"
+  text: string
+}
+
+export interface RenderedTerminalLine {
+  id: string
+  type: TerminalScriptEntry["type"]
+  text: string
+}
+
 export interface HealthCheckItem {
   id: string
   label: string

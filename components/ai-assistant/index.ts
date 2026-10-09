@@ -1,0 +1,6 @@
+export { AssistantPanel } from "./AssistantPanel"
+export { AssistantAvatar } from "./AssistantAvatar"
+export { ChatMessage } from "./ChatMessage"
+export { TypingIndicator } from "./TypingIndicator"
+export { useAssistantChat } from "./useAssistantChat"
+export { useChat } from "@/hooks/useChat"

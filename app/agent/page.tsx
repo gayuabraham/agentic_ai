@@ -1,41 +1,44 @@
 "use client"
 
-import { motion } from "framer-motion"
+import dynamic from "next/dynamic"
+import { useCallback } from "react"
+import { AgentDecor } from "@/components/ai-agent/AgentDecor"
 import { AgentWindow } from "@/components/ai-agent"
+import { useDeploymentAgent } from "@/components/ai-agent/useDeploymentAgent"
+import { buildDeploymentChatContext } from "@/lib/assistant/deployment-context"
+import {
+  useRepositoryAnalysisState,
+  useSelectedGitHubRepository,
+} from "@/stores/repository-store"
+
+const AssistantPanel = dynamic(
+  () => import("@/components/ai-assistant").then((mod) => mod.AssistantPanel),
+  { ssr: false },
+)
 
 export default function AgentPage() {
+  const agent = useDeploymentAgent()
+  const githubRepo = useSelectedGitHubRepository()
+  const { analysis } = useRepositoryAnalysisState()
+
+  const getDeploymentContext = useCallback(
+    () => buildDeploymentChatContext(agent, githubRepo, analysis),
+    [agent, githubRepo, analysis],
+  )
+
   return (
-    <motion.div className="relative min-h-screen overflow-hidden bg-[#030304]">
-      {/* Page ambient lighting */}
-      <motion.div
-        className="pointer-events-none absolute inset-0"
-        animate={{ opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 8, repeat: Infinity }}
-        style={{
-          background:
-            "radial-gradient(ellipse 80% 50% at 50% -20%, rgba(16,185,129,0.12), transparent), radial-gradient(ellipse 60% 40% at 100% 50%, rgba(139,92,246,0.08), transparent), radial-gradient(ellipse 50% 30% at 0% 80%, rgba(34,211,238,0.06), transparent)",
-        }}
-      />
+    <div
+      data-r24-agent
+      className="relative min-h-dvh bg-[var(--r24-agent-bg)] text-[var(--r24-agent-fg)]"
+    >
+      <div className="pointer-events-none fixed inset-0 r24-agent-backdrop" aria-hidden />
+      <AgentDecor />
 
-      <motion.div
-        className="pointer-events-none absolute inset-0 opacity-[0.03]"
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
-          backgroundSize: "48px 48px",
-        }}
-        animate={{ backgroundPosition: ["0px 0px", "48px 48px"] }}
-        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-      />
+      <div className="relative mx-auto w-full max-w-[1520px] px-3 py-4 sm:px-6 sm:py-6 lg:px-10 lg:py-8">
+        <AgentWindow agent={agent} />
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-        className="relative mx-auto flex min-h-screen max-w-[1600px] flex-col p-4 sm:p-6 lg:p-8"
-      >
-        <AgentWindow className="flex-1" />
-      </motion.div>
-    </motion.div>
+      <AssistantPanel getDeploymentContext={getDeploymentContext} />
+    </div>
   )
 }
